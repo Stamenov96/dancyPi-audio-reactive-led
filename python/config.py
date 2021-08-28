@@ -38,6 +38,10 @@ if DEVICE == 'pi':
     """Set True if using an inverting logic level converter"""
     SOFTWARE_GAMMA_CORRECTION = True
     """Set to True because Raspberry Pi doesn't use hardware dithering"""
+    LED_CONTROLLER = 'ws281x'
+    """There are different types of led controllers. Default is ws281x.
+    Another option is WS2801.
+    """
 
 if DEVICE == 'blinkstick':
     SOFTWARE_GAMMA_CORRECTION = True

@@ -11,11 +11,25 @@ if config.DEVICE == 'esp8266':
     _sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 # Raspberry Pi controls the LED strip directly
 elif config.DEVICE == 'pi':
-    from rpi_ws281x import *
-    strip = Adafruit_NeoPixel(config.N_PIXELS, config.LED_PIN,
-                                       config.LED_FREQ_HZ, config.LED_DMA,
-                                       config.LED_INVERT, config.BRIGHTNESS)
-    strip.begin()
+    if config.LED_CONTROLLER == 'ws281x':
+        from rpi_ws281x import *
+        strip = Adafruit_NeoPixel(config.N_PIXELS, config.LED_PIN,
+                                           config.LED_FREQ_HZ, config.LED_DMA,
+                                           config.LED_INVERT, config.BRIGHTNESS)
+        strip.begin()
+    elif config.LED_CONTROLLER == 'ws2801':
+        # Make Raspberry pinout addresible
+        import RPi.GPIO as GPIO
+
+        # Import the WS2801 module.
+        import Adafruit_WS2801
+        import Adafruit_GPIO.SPI as SPI
+
+        # Alternatively specify a hardware SPI connection on /dev/spidev0.0:
+        spi_port = 0
+        spi_device = 0
+        strip = Adafruit_WS2801.WS2801Pixels(config.N_PIXELS, spi=SPI.SpiDev(spi_port,spi_device), gpio=GPIO)
+
 elif config.DEVICE == 'blinkstick':
     from blinkstick import blinkstick
     import signal
@@ -82,8 +96,7 @@ def _update_esp8266():
         _sock.sendto(m, (config.UDP_IP, config.UDP_PORT))
     _prev_pixels = np.copy(p)
 
-
-def _update_pi():
+def _update_ws281x():
     """Writes new LED values to the Raspberry Pi's LED strip
 
     Raspberry Pi uses the rpi_ws281x to control the LED strip directly.
@@ -104,17 +117,44 @@ def _update_pi():
         # Ignore pixels if they haven't changed (saves bandwidth)
         if np.array_equal(p[:, i], _prev_pixels[:, i]):
             continue
-            
+
         strip._led_data[i] = int(rgb[i])
     _prev_pixels = np.copy(p)
     strip.show()
+
+def _update_ws2801():
+    """Writes new LED values to the Raspberry Pi's LED strip
+    This function updates the LED strip with new values.
+    """
+    global pixels, _prev_pixels
+    # Truncate values and cast to integer
+    pixels = np.clip(pixels, 0, 255).astype(int)
+    # Optional gamma correction
+    p = _gamma[pixels] if config.SOFTWARE_GAMMA_CORRECTION else np.copy(pixels)
+    r = [int(val) for val in p[0]]
+    g = [int(val) for val in p[1]]
+    b = [int(val) for val in p[2]]
+    # Update the pixels
+    for i in range(config.N_PIXELS):
+        # Ignore pixels if they haven't changed (saves bandwidth)
+        if np.array_equal(p[:, i], _prev_pixels[:, i]):
+            continue
+
+        strip.set_pixel(i, Adafruit_WS2801.RGB_to_color(r[i],g[i],b[i]))
+    _prev_pixels = np.copy(p)
+    strip.show()
+
+def _update_pi():
+    if config.LED_CONTROLLER == 'ws281x':
+        _update_ws281x()
+    elif config.LED_CONTROLLER == 'ws2801':
+        _update_ws2801()
 
 def _update_blinkstick():
     """Writes new LED values to the Blinkstick.
         This function updates the LED strip with new values.
     """
     global pixels
-    
     # Truncate values and cast to integer
     pixels = np.clip(pixels, 0, 255).astype(int)
     # Optional gamma correction
