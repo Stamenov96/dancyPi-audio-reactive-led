@@ -53,7 +53,7 @@ USE_GUI = False
 DISPLAY_FPS = True
 """Whether to display the FPS when running (can reduce performance)"""
 
-N_PIXELS = 160
+N_PIXELS = 158
 """Number of pixels in the LED strip (must match ESP8266 firmware)"""
 
 GAMMA_TABLE_PATH = os.path.join(os.path.dirname(__file__), 'gamma_table.npy')
@@ -105,5 +105,5 @@ There is no point using more bins than there are pixels on the LED strip.
 N_ROLLING_HISTORY = 2
 """Number of past audio frames to include in the rolling window"""
 
-MIN_VOLUME_THRESHOLD = 1e-6
+MIN_VOLUME_THRESHOLD = 1e-7
 """No music visualization displayed if recorded audio volume below threshold"""
