@@ -16,7 +16,15 @@ def start_stream(callback):
     prev_ovf_time = time.time()
     while True:
         try:
-            y = np.fromstring(stream.read(frames_per_buffer, exception_on_overflow=False), dtype=np.int16)
+            try:
+                y = np.fromstring(stream.read(frames_per_buffer, exception_on_overflow=False), dtype=np.int16)
+            except OSError as ex:
+                if ex.errno == -9999:
+                    stream = p.open(format=pyaudio.paInt16,
+                                    channels=1,
+                                    rate=config.MIC_RATE,
+                                    input=True,
+                                    frames_per_buffer=frames_per_buffer)
             y = y.astype(np.float32)
             stream.read(stream.get_read_available(), exception_on_overflow=False)
             callback(y)
