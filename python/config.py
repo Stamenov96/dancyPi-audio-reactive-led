@@ -38,7 +38,7 @@ if DEVICE == 'pi':
     """Set True if using an inverting logic level converter"""
     SOFTWARE_GAMMA_CORRECTION = True
     """Set to True because Raspberry Pi doesn't use hardware dithering"""
-    LED_CONTROLLER = 'ws281x'
+    LED_CONTROLLER = 'ws2801'
     """There are different types of led controllers. Default is ws281x.
     Another option is WS2801.
     """
@@ -53,7 +53,7 @@ USE_GUI = False
 DISPLAY_FPS = True
 """Whether to display the FPS when running (can reduce performance)"""
 
-N_PIXELS = 144
+N_PIXELS = 160
 """Number of pixels in the LED strip (must match ESP8266 firmware)"""
 
 GAMMA_TABLE_PATH = os.path.join(os.path.dirname(__file__), 'gamma_table.npy')
@@ -105,5 +105,5 @@ There is no point using more bins than there are pixels on the LED strip.
 N_ROLLING_HISTORY = 2
 """Number of past audio frames to include in the rolling window"""
 
-MIN_VOLUME_THRESHOLD = 1e-7
+MIN_VOLUME_THRESHOLD = 1e-6
 """No music visualization displayed if recorded audio volume below threshold"""
